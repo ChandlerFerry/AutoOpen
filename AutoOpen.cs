@@ -9,6 +9,7 @@ using AutoOpen.Utils;
 using ExileCore;
 using ExileCore.PoEMemory.Components;
 using ExileCore.PoEMemory.MemoryObjects;
+using ExileCore.PoEMemory.Elements.ItemsOnGroundLabelElement;
 using ExileCore.Shared.Enums;
 using ExileCore.Shared.Helpers;
 using SharpDX;
@@ -88,7 +89,16 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
 
                 if (!isBlacklisted && isClosed && Control.MouseButtons == MouseButtons.Left)
                 {
-                    Open(entity, entityDistanceToPlayer, entityScreenPos, prevMousePosition, Settings.DoorSettings.MaxDistance);
+                    var doorLabel = FindDoorLabel(entity);
+                    if (doorLabel != null)
+                    {
+                        var labelPos = doorLabel.Label.GetClientRectCache.Center.ToVector2Num();
+                        OpenLabel(entity, entityDistanceToPlayer, labelPos, prevMousePosition, Settings.DoorSettings.MaxDistance);
+                    }
+                    else
+                    {
+                        Open(entity, entityDistanceToPlayer, entityScreenPos, prevMousePosition, Settings.DoorSettings.MaxDistance);
+                    }
                 }
             }
 
@@ -254,5 +264,72 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
     public override void AreaChange(AreaInstance area)
     {
         _clickedEntities.Clear();
+    }
+
+    private MiscGroundLabel FindDoorLabel(Entity entity)
+    {
+        var itemsOnGroundLabels = IngameState.IngameUi.ItemsOnGroundLabels;
+        if (itemsOnGroundLabels == null || !itemsOnGroundLabels.IsVisible)
+            return null;
+
+        MiscGroundLabel closestLabel = null;
+        float closestDistance = float.MaxValue;
+        var entityPos = entity.PosNum;
+
+        foreach (var labelElement in itemsOnGroundLabels.Labels)
+        {
+            if (labelElement is MiscGroundLabel miscLabel && miscLabel.IsVisible)
+            {
+                var labelEntity = miscLabel.ItemOnGround;
+                if (labelEntity != null && labelEntity.Path == entity.Path)
+                {
+                    var labelEntityPos = labelEntity.PosNum;
+                    var distance = (entityPos - labelEntityPos).Length();
+                    
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestLabel = miscLabel;
+                    }
+                }
+            }
+        }
+
+        return closestDistance < 10 ? closestLabel : null;
+    }
+
+    private bool IsLabelVisible(MiscGroundLabel label)
+    {
+        return label.IsVisible && label.Label.IsVisible;
+    }
+
+    private void OpenLabel(Entity entity, float entityDistanceToPlayer, Vector2 labelPos, Vector2 prevMousePosition, double maxDistance)
+    {
+        if (entityDistanceToPlayer <= maxDistance)
+        {
+            if (GetEntityClickedCount(entity) <= 15)
+            {
+                if (Settings.BlockInputWhenClicking) Mouse.blockInput(true);
+                try
+                {
+                    Mouse.MoveMouse(labelPos + WindowOffset);
+                    Mouse.LeftUp(0);
+                    Mouse.LeftDown(0);
+                    Mouse.LeftUp(0);
+                    Mouse.MoveMouse(prevMousePosition);
+                    Mouse.LeftDown(0);
+                    Thread.Sleep(Settings.ClickDelay);
+                    _clickedEntities[entity.Address] = _clickedEntities.GetValueOrDefault(entity.Address) + 1;
+                }
+                finally
+                {
+                    if (Settings.BlockInputWhenClicking) Mouse.blockInput(false);
+                }
+            }
+        }
+        else
+        {
+            _clickedEntities.Remove(entity.Address);
+        }
     }
 }
