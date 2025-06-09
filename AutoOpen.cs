@@ -278,8 +278,7 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
 
             foreach (var labelElement in itemsOnGroundLabels)
             {
-                DebugWindow.LogError($"labelElement: {labelElement.GetType().Name}");
-                if (labelElement.Label.Type == "MiscGroundLabel" && labelElement.IsVisible)
+                if (labelElement.IsVisible)
                 {
                     dynamic miscLabel = labelElement;
                     var labelEntity = miscLabel.ItemOnGround;
