@@ -71,7 +71,8 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
 
             if (Settings.DoorSettings.Open &&
                 entity.HasComponent<TriggerableBlockage>() &&
-                entity.Path.Contains("door", StringComparison.OrdinalIgnoreCase))
+                entity.Path.Contains("door", StringComparison.OrdinalIgnoreCase) &&
+                !entity.Path.Contains("door_npc", StringComparison.OrdinalIgnoreCase))
             {
                 var isClosed = entity.GetComponent<TriggerableBlockage>().IsClosed;
 
