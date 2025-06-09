@@ -282,6 +282,9 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
                 {
                     dynamic miscLabel = labelElement;
                     var labelEntity = miscLabel.ItemOnGround;
+                    DebugWindow.LogError($"labelEntity: {labelEntity.Path}");
+                    DebugWindow.LogError($"entity: {entity.Path}");
+                    DebugWindow.LogError($"labelEntity.Path == entity.Path: {labelEntity.Path == entity.Path}");
                     if (labelEntity != null && labelEntity.Path == entity.Path)
                     {
                         var labelEntityPos = labelEntity.PosNum;
