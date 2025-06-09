@@ -269,14 +269,14 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
         try
         {
             var itemsOnGroundLabels = IngameState.IngameUi.ItemsOnGroundLabels;
-            if (itemsOnGroundLabels == null || !itemsOnGroundLabels.IsVisible)
+            if (itemsOnGroundLabels == null || itemsOnGroundLabels.Count == 0)
                 return null;
 
             dynamic closestLabel = null;
             float closestDistance = float.MaxValue;
             var entityPos = entity.PosNum;
 
-            foreach (var labelElement in itemsOnGroundLabels.Labels)
+            foreach (var labelElement in itemsOnGroundLabels)
             {
                 if (labelElement.GetType().Name == "MiscGroundLabel" && labelElement.IsVisible)
                 {
