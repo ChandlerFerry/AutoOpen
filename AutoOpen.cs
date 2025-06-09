@@ -95,7 +95,7 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
                     }
                     else
                     {
-                        Open(entity, entityDistanceToPlayer, entityScreenPos, prevMousePosition, Settings.DoorSettings.MaxDistance);
+                        // Open(entity, entityDistanceToPlayer, entityScreenPos, prevMousePosition, Settings.DoorSettings.MaxDistance);
                     }
                 }
             }
@@ -278,6 +278,7 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
 
             foreach (var labelElement in itemsOnGroundLabels)
             {
+                DebugWindow.LogError($"labelElement: {labelElement.GetType().Name}");
                 if (labelElement.GetType().Name == "MiscGroundLabel" && labelElement.IsVisible)
                 {
                     dynamic miscLabel = labelElement;
