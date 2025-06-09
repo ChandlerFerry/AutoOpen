@@ -19,7 +19,14 @@ namespace AutoOpen;
 public class AutoOpen : BaseSettingsPlugin<Settings>
 {
     private IngameState IngameState => GameController.Game.IngameState;
-    private Vector2 WindowOffset => GameController.Window.GetWindowRectangleTimeCache.TopLeft.ToVector2Num();
+    private Vector2 WindowOffset 
+    {
+        get
+        {
+            var topLeft = GameController.Window.GetWindowRectangleTimeCache.TopLeft;
+            return new Vector2(topLeft.X, topLeft.Y);
+        }
+    }
     private readonly Dictionary<long, int> _clickedEntities = [];
     private List<string> _doorBlacklist;
     private List<string> _switchBlacklist;
@@ -301,7 +308,8 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
 
             if (closestLabel != null && closestDistance < 10)
             {
-                return closestLabel.Label.GetClientRectCache.Center.ToVector2Num();
+                var center = closestLabel.Label.GetClientRectCache.Center;
+                return new Vector2(center.X, center.Y);
             }
         }
         catch (Exception ex)
