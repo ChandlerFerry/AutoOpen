@@ -9,7 +9,6 @@ using AutoOpen.Utils;
 using ExileCore;
 using ExileCore.PoEMemory.Components;
 using ExileCore.PoEMemory.MemoryObjects;
-using ExileCore.PoEMemory.Elements.ItemsOnGroundLabelElement;
 using ExileCore.Shared.Enums;
 using ExileCore.Shared.Helpers;
 using SharpDX;
@@ -89,11 +88,10 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
 
                 if (!isBlacklisted && isClosed && Control.MouseButtons == MouseButtons.Left)
                 {
-                    var doorLabel = FindDoorLabel(entity);
-                    if (doorLabel != null)
+                    var labelPos = FindDoorLabel(entity);
+                    if (labelPos.HasValue)
                     {
-                        var labelPos = doorLabel.Label.GetClientRectCache.Center.ToVector2Num();
-                        OpenLabel(entity, entityDistanceToPlayer, labelPos, prevMousePosition, Settings.DoorSettings.MaxDistance);
+                        OpenLabel(entity, entityDistanceToPlayer, labelPos.Value, prevMousePosition, Settings.DoorSettings.MaxDistance);
                     }
                     else
                     {
@@ -266,41 +264,61 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
         _clickedEntities.Clear();
     }
 
-    private MiscGroundLabel FindDoorLabel(Entity entity)
+    private Vector2? FindDoorLabel(Entity entity)
     {
-        var itemsOnGroundLabels = IngameState.IngameUi.ItemsOnGroundLabels;
-        if (itemsOnGroundLabels == null || !itemsOnGroundLabels.IsVisible)
-            return null;
-
-        MiscGroundLabel closestLabel = null;
-        float closestDistance = float.MaxValue;
-        var entityPos = entity.PosNum;
-
-        foreach (var labelElement in itemsOnGroundLabels.Labels)
+        try
         {
-            if (labelElement is MiscGroundLabel miscLabel && miscLabel.IsVisible)
+            var itemsOnGroundLabels = IngameState.IngameUi.ItemsOnGroundLabels;
+            if (itemsOnGroundLabels == null || !itemsOnGroundLabels.IsVisible)
+                return null;
+
+            dynamic closestLabel = null;
+            float closestDistance = float.MaxValue;
+            var entityPos = entity.PosNum;
+
+            foreach (var labelElement in itemsOnGroundLabels.Labels)
             {
-                var labelEntity = miscLabel.ItemOnGround;
-                if (labelEntity != null && labelEntity.Path == entity.Path)
+                if (labelElement.GetType().Name == "MiscGroundLabel" && labelElement.IsVisible)
                 {
-                    var labelEntityPos = labelEntity.PosNum;
-                    var distance = (entityPos - labelEntityPos).Length();
-                    
-                    if (distance < closestDistance)
+                    dynamic miscLabel = labelElement;
+                    var labelEntity = miscLabel.ItemOnGround;
+                    if (labelEntity != null && labelEntity.Path == entity.Path)
                     {
-                        closestDistance = distance;
-                        closestLabel = miscLabel;
+                        var labelEntityPos = labelEntity.PosNum;
+                        var distance = (entityPos - labelEntityPos).Length();
+                        
+                        if (distance < closestDistance)
+                        {
+                            closestDistance = distance;
+                            closestLabel = miscLabel;
+                        }
                     }
                 }
             }
+
+            if (closestLabel != null && closestDistance < 10)
+            {
+                return closestLabel.Label.GetClientRectCache.Center.ToVector2Num();
+            }
+        }
+        catch (Exception ex)
+        {
+            LogError($"Error finding door label: {ex.Message}");
         }
 
-        return closestDistance < 10 ? closestLabel : null;
+        return null;
     }
 
-    private bool IsLabelVisible(MiscGroundLabel label)
+    private bool IsLabelVisible(dynamic label)
     {
-        return label.IsVisible && label.Label.IsVisible;
+        try
+        {
+            return label.IsVisible && label.Label.IsVisible;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void OpenLabel(Entity entity, float entityDistanceToPlayer, Vector2 labelPos, Vector2 prevMousePosition, double maxDistance)
