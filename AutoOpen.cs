@@ -102,7 +102,7 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
                     }
                     else
                     {
-                        // Open(entity, entityDistanceToPlayer, entityScreenPos, prevMousePosition, Settings.DoorSettings.MaxDistance);
+                        Open(entity, entityDistanceToPlayer, entityScreenPos, prevMousePosition, Settings.DoorSettings.MaxDistance);
                     }
                 }
             }
