@@ -333,24 +333,12 @@ public class AutoOpen : BaseSettingsPlugin<Settings>
     {
         if (entityDistanceToPlayer <= maxDistance)
         {
-            if (GetEntityClickedCount(entity) <= 15)
+            if (GetEntityClickedCount(entity) <= 3)
             {
-                if (Settings.BlockInputWhenClicking) Mouse.blockInput(true);
-                try
-                {
-                    Mouse.MoveMouse(labelPos + WindowOffset);
-                    Mouse.LeftUp(0);
-                    Mouse.LeftDown(0);
-                    Mouse.LeftUp(0);
-                    Mouse.MoveMouse(prevMousePosition);
-                    Mouse.LeftDown(0);
-                    Thread.Sleep(Settings.ClickDelay);
-                    _clickedEntities[entity.Address] = _clickedEntities.GetValueOrDefault(entity.Address) + 1;
-                }
-                finally
-                {
-                    if (Settings.BlockInputWhenClicking) Mouse.blockInput(false);
-                }
+                Mouse.LeftUp(0);
+                GameController.PluginBridge.GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget")(entity, 0x400);
+                Mouse.LeftDown(0);
+                _clickedEntities[entity.Address] = _clickedEntities.GetValueOrDefault(entity.Address) + 1;
             }
         }
         else
